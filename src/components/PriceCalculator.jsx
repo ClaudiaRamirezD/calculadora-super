@@ -8,6 +8,8 @@ function PriceCalculator() {
   const [customDiscount, setCustomDiscount] = useState("");
   const [showBrandInput, setShowBrandInput] = useState(false);
   const [brand, setBrand] = useState("");
+  const [options, setOptions] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
 
   const normalize = (amount, unit) => {
     if (!amount) return 0;
@@ -16,9 +18,6 @@ function PriceCalculator() {
       case "g":
       case "ml":
         return value / 1000;
-      case "kg":
-      case "L":
-        return value;
       default:
         return value;
     }
@@ -48,6 +47,8 @@ function PriceCalculator() {
     const finalPrice = applyDiscount(price);
     return finalPrice / normalized;
   };
+
+  const unitLabel = unit === "g" ? "kilo" : "litro";
 
   return (
     <section
@@ -90,14 +91,8 @@ function PriceCalculator() {
             <option value="g" className="bg-blue-violet3">
               gramos (g)
             </option>
-            <option value="kg" className="bg-blue-violet3">
-              kilos (kg)
-            </option>
             <option value="ml" className="bg-blue-violet3">
               mililitros (ml)
-            </option>
-            <option value="L" className="bg-blue-violet3">
-              litros (L)
             </option>
           </select>
         </div>
@@ -193,12 +188,11 @@ function PriceCalculator() {
       <div className="pt-4 border-t">
         <div className="flex items-center justify-between">
           <p className="text-lg text-white font-bold">
-            Precio por kilo/litro: ${getPricePerUnit().toFixed(2)}
+            Precio por {unitLabel}: ${getPricePerUnit().toFixed(2)}
           </p>
-
           <button
             onClick={() => setShowBrandInput((prev) => !prev)}
-            className="text-white bg-rose2 size-9  rounded-full text-2xl font-bold  flex items-stretch justify-center"
+            className="text-white bg-rose2 size-9 rounded-full text-2xl font-bold flex items-stretch justify-center"
             aria-label="Agregar marca"
             type="button"
           >
@@ -207,19 +201,70 @@ function PriceCalculator() {
         </div>
 
         {showBrandInput && (
-          <input
-            type="text"
-            value={brand}
-            onChange={(e) => setBrand(e.target.value)}
-            placeholder="Marca o tienda"
-            className="mt-2 w-full p-2 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-azure2 focus:border-transparent"
-          />
+          <div className="flex gap-2 mt-2">
+            <input
+              type="text"
+              value={brand}
+              onChange={(e) => setBrand(e.target.value)}
+              placeholder="Marca o tienda"
+              className="w-full p-2 rounded-lg border border-gray-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-azure2 focus:border-transparent"
+            />
+            <button
+              type="button"
+              className="bg-azure2 text-white px-3 rounded-lg font-bold"
+              onClick={() => {
+                if (brand.trim()) {
+                  setOptions([
+                    ...options,
+                    {
+                      brand: brand.trim(),
+                      pricePerUnit: getPricePerUnit()
+                    }
+                  ]);
+                  setBrand("");
+                  setShowBrandInput(false);
+                }
+              }}
+            >
+              Agregar
+            </button>
+          </div>
         )}
 
-        {brand && (
-          <p className="mt-2 text-sm text-white italic">
-            Marca: <span className="font-medium">{brand}</span>
-          </p>
+        {options.length > 0 && (
+          <div className="mt-4">
+            <p className="text-white font-semibold mb-2">Opciones guardadas:</p>
+            <ul className="space-y-2">
+              {options.map((opt, idx) => (
+                <li
+                  key={idx}
+                  className={`flex items-center justify-between p-2 rounded-lg ${
+                    selectedOption === idx ? "bg-rose2" : "bg-blue-violet3"
+                  }`}
+                >
+                  <span>
+                    <span className="font-medium">{opt.brand}</span> — $
+                    {opt.pricePerUnit.toFixed(2)} por kilo/litro
+                  </span>
+                  <button
+                    className="ml-2 px-2 py-1 rounded bg-azure2 text-white text-xs"
+                    onClick={() => setSelectedOption(idx)}
+                  >
+                    Elegir
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {selectedOption !== null && (
+              <p className="mt-2 text-white">
+                Seleccionado:{" "}
+                <span className="font-bold">
+                  {options[selectedOption].brand}
+                </span>{" "}
+                — ${options[selectedOption].pricePerUnit.toFixed(2)}
+              </p>
+            )}
+          </div>
         )}
       </div>
     </section>
