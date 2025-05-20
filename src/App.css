@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme {
+--color-amber2: hsla(44, 100%, 52%, 1);
+--color-orange-pantone2: hsla(19, 97%, 51%, 1);
+--color-rose2: hsla(334, 100%, 50%, 1);
+--color-blue-violet2: hsla(265, 83%, 57%, 1);
+--color-azure2: hsla(217, 100%, 61%, 1);
+}
