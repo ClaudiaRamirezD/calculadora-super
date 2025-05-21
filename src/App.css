@@ -8,3 +8,27 @@
     --color-blue-violet3: hsla(265, 83%, 70%, 1);
     --color-azure2: hsla(217, 100%, 61%, 1);
 }
+
+/* Quitar spinners en Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Quitar spinners en Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+select::-ms-expand {
+    display: none;
+}
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    padding-right: 2.5rem; /* Espacio para un icono personalizado */
+}
