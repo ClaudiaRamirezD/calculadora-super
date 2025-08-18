@@ -44,6 +44,9 @@ function MainForm({
           <option value="g" className="bg-blue-violet3">
             gramos (g)
           </option>
+          <option value="p" className="bg-blue-violet3">
+            piezas (p)
+          </option>
           <option value="ml" className="bg-blue-violet3">
             mililitros (ml)
           </option>

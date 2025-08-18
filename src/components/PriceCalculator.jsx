@@ -22,6 +22,8 @@ function PriceCalculator() {
       case "g":
       case "ml":
         return value / 1000;
+      case "p":
+        return value;
       default:
         return value;
     }
@@ -34,12 +36,14 @@ function PriceCalculator() {
         return original / 2;
       case "3x2":
         return original * (2 / 3);
-      case "second-x":
+      case "second-x": {
         const x = parseFloat(customDiscount) || 0;
         return (original * (1 + x / 100)) / 2;
-      case "custom":
+      }
+      case "custom": {
         const d = parseFloat(customDiscount) || 0;
         return original * (1 - d / 100);
+      }
       default:
         return original;
     }
@@ -52,7 +56,14 @@ function PriceCalculator() {
     return finalPrice / normalized;
   };
 
-  const unitLabel = unit === "g" ? "kilo" : "litro";
+  const unitLabel =
+    unit === "g" 
+    ? "kilo" 
+    : unit === "ml" 
+    ? "litro" 
+    : unit === "p"
+    ? "pieza"
+    : unit
 
   return (
     <section
