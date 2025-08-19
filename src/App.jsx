@@ -3,7 +3,7 @@ import PriceCalculator from "./components/PriceCalculator";
 
 function App() {
   return (
-    <main className="min-h-screen bg-azure2 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-[url(/beanstalk-dark.webp)] bg-repeat bg-top flex items-center justify-center p-4">
       <PriceCalculator />
     </main>
   );
