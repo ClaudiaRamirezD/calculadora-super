@@ -4,67 +4,102 @@ import PriceSummary from "./PriceSummary";
 import BrandInput from "./BrandInput";
 import OptionsList from "./OptionsList";
 
-const UNIT_LABELS = {
-  g: "kilo",
-  ml: "litro",
-  p: "pieza"
-};
-
-function normalize(amount, unit) {
-  const value = parseFloat(amount);
-  if (!value || value < 0) return 0;
-  switch (unit) {
-    case "g":
-    case "ml":
-      return value / 1000;
-    case "p":
-      return Math.floor(value);
-    default:
-      return value;
-  }
-}
-
-function applyDiscount(price, discountType, customDiscount) {
-  const original = parseFloat(price);
-  if (!original || original < 0) return 0;
-  switch (discountType) {
-    case "2x1":
-      return original / 2;
-    case "3x2":
-      return original * (2 / 3);
-    case "second-x": {
-      const x = parseFloat(customDiscount) || 0;
-      return (original * (1 + x / 100)) / 2;
-    }
-    case "custom": {
-      const d = parseFloat(customDiscount) || 0;
-      return original * (1 - d / 100);
-    }
-    default:
-      return original;
-  }
-}
-
-function getPricePerUnit(amount, unit, price, discountType, customDiscount) {
-  const normalized = normalize(amount, unit);
-  if (!normalized || !price) return 0;
-  const finalPrice = applyDiscount(price, discountType, customDiscount);
-  return finalPrice / normalized;
-}
-
 function PriceCalculator() {
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("g");
   const [price, setPrice] = useState("");
   const [discountType, setDiscountType] = useState("none");
   const [customDiscount, setCustomDiscount] = useState("");
+  const [piecesPerUnit, setPiecesPerUnit] = useState("");
+
   const [showBrandInput, setShowBrandInput] = useState(false);
   const [brand, setBrand] = useState("");
   const [options, setOptions] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
 
-  const unitLabel = UNIT_LABELS[unit] || unit;
-  const pricePerUnit = getPricePerUnit(amount, unit, price, discountType, customDiscount);
+  const unitLabel =
+    unit === "g"
+      ? "kilo"
+      : unit === "ml"
+      ? "litro"
+      : unit === "p"
+      ? "pieza"
+      : unit;
+
+  // Normaliza unidades (solo para gramos/ml)
+  const normalize = (amount, unit) => {
+    if (!amount) return 0;
+    const value = parseFloat(amount);
+    switch (unit) {
+      case "g":
+      case "ml":
+        return value / 1000;
+      default:
+        return value;
+    }
+  };
+
+  // Aplica descuentos a precio total
+  const applyDiscount = (numPackages, pricePerPackage) => {
+    let totalCost = numPackages * pricePerPackage;
+
+    switch (discountType) {
+      case "2x1":
+        totalCost = Math.ceil(numPackages / 2) * pricePerPackage;
+        break;
+      case "3x2": {
+        const setsOfThree = Math.floor(numPackages / 3);
+        const remaining = numPackages % 3;
+        totalCost = (setsOfThree * 2 + remaining) * pricePerPackage;
+        break;
+      }
+      case "second-x": {
+        const x = parseFloat(customDiscount) || 0;
+        let cost = 0;
+        for (let i = 0; i < numPackages; i++) {
+          cost += i % 2 === 1 ? pricePerPackage * (1 - x / 100) : pricePerPackage;
+        }
+        totalCost = cost;
+        break;
+      }
+      case "custom": {
+        const d = parseFloat(customDiscount) || 0;
+        totalCost = totalCost * (1 - d / 100);
+        break;
+      }
+      default:
+        break;
+    }
+
+    return totalCost;
+  };
+
+  // Precio por unidad (pieza real / kilo / litro)
+  const getPricePerUnit = () => {
+    if (!price || !amount) return 0;
+
+    const numPackages = parseInt(amount, 10) || 0;
+    let totalUnits = 0;
+
+    if (unit === "p") {
+      const piecesPerPack = parseFloat(piecesPerUnit) || 1;
+      totalUnits = numPackages * piecesPerPack;
+      if (!totalUnits) return 0;
+      const totalCost = applyDiscount(numPackages, parseFloat(price));
+      return totalCost / totalUnits;
+    }
+
+    // Para g/ml
+    totalUnits = normalize(amount, unit);
+    const totalCost = applyDiscount(numPackages, parseFloat(price));
+    return totalCost / totalUnits;
+  };
+
+  // Total a pagar
+  const getFinalPrice = () => {
+    if (!price || !amount) return 0;
+    return applyDiscount(parseInt(amount, 10) || 0, parseFloat(price));
+  };
 
   return (
     <section
@@ -86,12 +121,15 @@ function PriceCalculator() {
         setDiscountType={setDiscountType}
         customDiscount={customDiscount}
         setCustomDiscount={setCustomDiscount}
+        piecesPerUnit={piecesPerUnit}
+        setPiecesPerUnit={setPiecesPerUnit}
       />
 
       <div className="pt-4 border-t">
         <PriceSummary
           unitLabel={unitLabel}
-          pricePerUnit={pricePerUnit}
+          pricePerUnit={getPricePerUnit()}
+          finalPrice={getFinalPrice()}
           onAddBrand={() => setShowBrandInput((prev) => !prev)}
         />
 
@@ -105,8 +143,8 @@ function PriceCalculator() {
                   ...options,
                   {
                     brand: brand.trim(),
-                    pricePerUnit
-                  }
+                    pricePerUnit: getPricePerUnit(),
+                  },
                 ]);
                 setBrand("");
                 setShowBrandInput(false);

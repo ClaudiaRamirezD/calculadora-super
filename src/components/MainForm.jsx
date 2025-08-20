@@ -10,12 +10,15 @@ function MainForm({
   discountType,
   setDiscountType,
   customDiscount,
-  setCustomDiscount
+  setCustomDiscount,
+  piecesPerUnit,
+  setPiecesPerUnit,
 }) {
   return (
     <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      {/* Cantidad de empaques */}
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium  mb-1">
+        <label htmlFor="amount" className="block text-sm font-medium mb-1">
           Cantidad
         </label>
         <input
@@ -24,10 +27,11 @@ function MainForm({
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-azure2 focus:border-transparent cursor-pointer"
-          placeholder="Ej. 500"
+          placeholder="Ej. 1"
         />
       </div>
 
+      {/* Unidad */}
       <div>
         <label
           htmlFor="unit"
@@ -53,6 +57,27 @@ function MainForm({
         </select>
       </div>
 
+      {/* Piezas por empaque (solo si es unidad = pieza) */}
+      {unit === "p" && (
+        <div>
+          <label
+            htmlFor="piecesPerUnit"
+            className="block text-sm font-medium text-white mb-1"
+          >
+            Piezas por empaque
+          </label>
+          <input
+            id="piecesPerUnit"
+            type="number"
+            value={piecesPerUnit}
+            onChange={(e) => setPiecesPerUnit(e.target.value)}
+            className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-azure2 focus:border-transparent cursor-pointer"
+            placeholder="Ej. 3"
+          />
+        </div>
+      )}
+
+      {/* Precio total */}
       <div>
         <label
           htmlFor="price"
@@ -70,11 +95,13 @@ function MainForm({
         />
       </div>
 
+      {/* Botones de descuento */}
       <DiscountButtons
         discountType={discountType}
         setDiscountType={setDiscountType}
       />
 
+      {/* Descuento personalizado */}
       {(discountType === "second-x" || discountType === "custom") && (
         <div className="mt-6">
           <label
