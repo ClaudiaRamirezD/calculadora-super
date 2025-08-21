@@ -26,19 +26,6 @@ function PriceCalculator() {
       ? "pieza"
       : unit;
 
-  // Normaliza unidades (solo para gramos/ml)
-  const normalize = (amount, unit) => {
-    if (!amount) return 0;
-    const value = parseFloat(amount);
-    switch (unit) {
-      case "g":
-      case "ml":
-        return value / 1000;
-      default:
-        return value;
-    }
-  };
-
   // Aplica descuentos a precio total
   const applyDiscount = (numPackages, pricePerPackage) => {
     let totalCost = numPackages * pricePerPackage;
@@ -78,27 +65,37 @@ function PriceCalculator() {
   const getPricePerUnit = () => {
     if (!price || !amount) return 0;
 
-    const numPackages = parseInt(amount, 10) || 0;
-    let totalUnits = 0;
-
     if (unit === "p") {
+      // piezas
+      const numPackages = parseInt(amount, 10) || 0;
       const piecesPerPack = parseFloat(piecesPerUnit) || 1;
-      totalUnits = numPackages * piecesPerPack;
+      const totalUnits = numPackages * piecesPerPack;
       if (!totalUnits) return 0;
       const totalCost = applyDiscount(numPackages, parseFloat(price));
       return totalCost / totalUnits;
+    } else if (unit === "g" || unit === "ml") {
+      // gramos o mililitros → convertir a kilo/litro
+      const value = parseFloat(amount) || 0;
+      const totalUnits = value / 1000; // en kilos/litros
+      if (!totalUnits) return 0;
+      const totalCost = parseFloat(price); // precio del paquete/cantidad indicada
+      return totalCost / totalUnits;
     }
 
-    // Para g/ml
-    totalUnits = normalize(amount, unit);
-    const totalCost = applyDiscount(numPackages, parseFloat(price));
-    return totalCost / totalUnits;
+    return 0;
   };
 
   // Total a pagar
   const getFinalPrice = () => {
     if (!price || !amount) return 0;
-    return applyDiscount(parseInt(amount, 10) || 0, parseFloat(price));
+
+    if (unit === "p") {
+      return applyDiscount(parseInt(amount, 10) || 0, parseFloat(price));
+    } else if (unit === "g" || unit === "ml") {
+      return parseFloat(price); // precio ya corresponde a esa cantidad
+    }
+
+    return 0;
   };
 
   return (
